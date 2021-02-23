@@ -1,0 +1,11 @@
+,Event,instructions,branch-instructions,branch-misses,cache-references,cache-misses,time-elapsed
+0,Count (simulateSteps),0,1924960,4465,404399,2509,5.801865ms
+1,Count (simulateSteps),0,2651521,5803,362494,2569,7.275603ms
+2,Count (simulateSteps),0,1656002,2515,5875,4737,7.210243ms
+3,Count (simulateSteps),0,1755105,2974,380604,2123,6.164327ms
+4,Count (simulateSteps),0,1754402,3897,379076,1152,4.868774ms
+5,Count (simulateSteps),0,1812282,3966,388298,2869,6.324394ms
+6,Count (simulateSteps),0,1944505,4540,415668,2531,6.32904ms
+7,Count (simulateSteps),0,1884487,3755,184554,4201,7.177525ms
+8,Count (simulateSteps),0,2319116,4306,360642,1041,5.428626ms
+9,Count (simulateSteps),0,2123686,4165,354441,1696,5.80282ms
