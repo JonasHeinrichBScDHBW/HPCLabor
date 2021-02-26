@@ -14,12 +14,16 @@ from matplotlib import pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 
-CURRENT_DIRECTORY = Path(__file__).parent
-BENCHMARK_DIRECTORY = CURRENT_DIRECTORY.joinpath("benchmarks")
-PLOT_DIRECTORY = CURRENT_DIRECTORY.joinpath("plots")
-PERFORATOR_PATH = CURRENT_DIRECTORY.joinpath("../perforator")
+DIR_SCRIPT = Path(__file__).parent
+DIR_ROOT = DIR_SCRIPT.parent
 
-TEST_COMMAND = "./gameoflife"
+DIR_BENCHMARKS = DIR_ROOT.joinpath("benchmarks")
+DIR_BUILD = DIR_ROOT.joinpath("build")
+DIR_OUTPUT = DIR_ROOT.joinpath("output")
+DIR_PERFORATOR = DIR_ROOT.joinpath("perforator")
+DIR_PLOTS = DIR_ROOT.joinpath("plots")
+
+TEST_COMMAND = f"./{str(DIR_BUILD.joinpath('gameoflife'))}"
 TEST_FUNCTION = "simulateSteps"
 
 RUNS = 5
@@ -105,7 +109,7 @@ def run_benchmark_perforator(benchmark: Benchmark) -> str:
 
     env = dict(os.environ)
     env.update({"OMP_NUM_THREADS": str(benchmark.threads)})
-    env["PATH"] = str(PERFORATOR_PATH.resolve()) + ":" + env["PATH"]
+    env["PATH"] = str(DIR_PERFORATOR.resolve()) + ":" + env["PATH"]
 
     retry = True
     while retry:
@@ -145,7 +149,7 @@ def run_benchmark(benchmark: Benchmark) -> str:
 
     env = dict(os.environ)
     env.update({"OMP_NUM_THREADS": str(benchmark.threads)})
-    env["PATH"] = str(PERFORATOR_PATH.resolve()) + ":" + env["PATH"]
+    env["PATH"] = str(DIR_PERFORATOR.resolve()) + ":" + env["PATH"]
 
     retry = True
     while retry:
@@ -203,7 +207,7 @@ def run_benchmarks():
                     print("Running benchmark: " + str(benchmark))
                     run_benchmark(benchmark)
                 print("Saving benchmark: " + str(benchmark))
-                benchmark.save(BENCHMARK_DIRECTORY)
+                benchmark.save(DIR_BENCHMARKS)
 
         # NOTE: Keep for easy debugging
         #         break
@@ -213,7 +217,7 @@ def run_benchmarks():
 
 def load_benchmarks() -> List[Benchmark]:
     benchmarks = []
-    for file_path in list(BENCHMARK_DIRECTORY.glob("*.csv")):
+    for file_path in list(DIR_BENCHMARKS.glob("*.csv")):
         benchmarks.append(Benchmark.load(file_path))
     return benchmarks
 
@@ -301,7 +305,7 @@ def plot_3d_thread_size_time(benchmarks: List[Benchmark], z_metric="Elapsed (wal
         f"Game of Life Benchmark: Number of Threads vs Board Area vs {z_metric} (10 runs)", fontsize=14)
     ax.view_init(15, 135)
 
-    plt.savefig(str(PLOT_DIRECTORY.joinpath(f"thread_size_{z_metric}_3d.png")))
+    plt.savefig(str(DIR_PLOTS.joinpath(f"thread_size_{z_metric}_3d.png")))
     if show:
         plt.show()
 
@@ -356,7 +360,7 @@ def plot_2d_segments_time(benchmarks: List[Benchmark], board_size=1024, y_metric
         f"Game of Life Benchmark: Segments vs {y_metric} (10 runs | Board Size {board_size})", fontsize=14)
     ax.set_ylabel(y_label)
 
-    plt.savefig(str(PLOT_DIRECTORY.joinpath(f"segments_{y_metric}_2d.png")))
+    plt.savefig(str(DIR_PLOTS.joinpath(f"segments_{y_metric}_2d.png")))
     if show:
         plt.show()
 

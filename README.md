@@ -1,8 +1,30 @@
-# README
+# High Performance Computing Labor - Game of Life
 
-# Aufgabe 3 - Performanceanalyse
+## Project Structure
 
-## 3a
+- `archive`: task material provided by the lecturer
+- `benchmarks`: benchmark result cache
+- `build`: compiled binaries
+- `google-benchmark`: [Google Benchmark](https://github.com/google/benchmark) as a git submodule
+- `output`: program output (mainly `.vtk` files)
+- `perforator`: [Perforator](https://github.com/zyedidia/perforator) as a git submodule (`perf` events for single threaded code regions)
+- `plots`: benchmark plots
+- `src`: Source files
+  - `benchmark.cpp`: Google Benchmark C++ wrapper for GOL
+  - `benchmark.py`: Python benchmark wrapper and plotting
+  - `gameoflife.c`: Entry point for C version
+  - `gol_field.h`: Definitions and utilities regarding a GOL field used by other implementations
+  - `gol_mpi.h`: GOL implementation that uses MPI
+  - `gol_omp.h`: GOL implementation that uses OpenMP
+  - `gol_plain_utils.h`: Utils for a plain gol implementation
+  - `gol_vanilla.h`: GOL implementation that uses no framework (single threaded)
+  - `scratchpad.c`: Scratchpad file for testing random things
+
+## Aufgaben (German)
+
+### Aufgabe 3 - Performanceanalyse
+
+#### 3a
 
 *Berechnen Sie, wie viel Speicherplatz im Arbeitsspeicher und auf der Festplatte für den Gebietsgrößentest benötigt wird.*
 
