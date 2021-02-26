@@ -19,8 +19,32 @@
 #define DEBUG
 #undef DEBUG
 
-#define OUTPUT_VTK
-#undef OUTPUT_VTK
+#define VTK_OUTPUT
+// #undef VTK_OUTPUT
+
+#ifdef VTK_OUTPUT
+
+#define VTK_INIT \
+    char pathPrefix[1024]; \
+    snprintf(pathPrefix, sizeof(pathPrefix), "output/"); 
+
+#define VTK_OUTPUT_SEGMENT(TIMESTEP, START_X, END_X, START_Y, END_Y) \
+    char prefix[1024]; \
+    snprintf(prefix, sizeof(prefix), "gol_mtp_%05d", TIMESTEP); \
+    writeVTK2(currentField, pathPrefix, prefix, START_X, END_X, START_Y, END_Y); \
+
+#define VTK_OUTPUT_MASTER(TIMESTEP) \
+    char masterPrefix[1024]; \
+    snprintf(masterPrefix, sizeof(masterPrefix), "gol_mtp_%05d", TIMESTEP); \
+    writeVTK2Master(currentField, pathPrefix, masterPrefix);
+
+#else
+
+#define VTK_INIT
+#define VTK_OUTPUT_SEGMENT(TIMESTEP, START_X, END_X, START_Y, END_Y)
+#define VTK_OUTPUT_MASTER(TIMESTEP)
+
+#endif // VTK_OUTPUT
 
 //
 // Field & Initialization
@@ -128,7 +152,10 @@ void writeVTK2(struct Field *data, char pathPrefix[1024], char prefix[1024], int
     float deltax = 1.0;
     long nxy = data->width * data->height * sizeof(float);
 
-    snprintf(filename, sizeof(filename), "%s%s_%d_%d.vti", pathPrefix, prefix, startX, startY);
+    int ret = snprintf(filename, sizeof(filename), "%s%s_%d_%d.vti", pathPrefix, prefix, startX, startY);
+    if (ret < 0) {
+         abort();
+    }
     FILE *fp = fopen(filename, "w");
 
     fprintf(fp, "<?xml version=\"1.0\"?>\n");
@@ -197,6 +224,8 @@ void writeVTK2Master(struct Field *data, char pathPrefix[1024], char prefix[1024
     fprintf(fp, "</VTKFile>\n");
     fclose(fp);
 }
+
+
 
 void printField(struct Field *currentField)
 {

@@ -6,12 +6,9 @@
 
 static inline void simulateStepOMPPlain(struct Field *currentField, struct Field *newField, int timestep)
 {
-#ifdef OUTPUT_VTK
-    char pathPrefix[1024];
-    snprintf(pathPrefix, sizeof(pathPrefix), "output/");
-#endif
+    VTK_INIT
 
-#pragma omp parallel for collapse(2)
+    #pragma omp parallel for collapse(2)
     for (int i = 0; i < currentField->segmentsX; i++)
     {
         for (int j = 0; j < currentField->segmentsY; j++)
@@ -22,25 +19,6 @@ static inline void simulateStepOMPPlain(struct Field *currentField, struct Field
             int endX = currentField->factorX * (i + 1) + 0.5;
             int endY = currentField->factorY * (j + 1) + 0.5;
 
-#ifdef DEBUG
-            if (startX > currentField->width || endX > currentField->width || startY > currentField->height || endY > currentField->height)
-            {
-#pragma omp critical
-                {
-                    printf("==========\n");
-                    printf("Out of bounds detected\n");
-                    printf("Segments X: %d\n", currentField->segmentsX);
-                    printf("Segments Y: %d\n", currentField->segmentsY);
-                    printf("Factor   X: %lf\n", currentField->factorX);
-                    printf("Factor   Y: %lf\n", currentField->factorY);
-                    printf("Start    X: %d\n", startX);
-                    printf("End      X: %d\n", endX);
-                    printf("Start    Y: %d\n", startY);
-                    printf("End      Y: %d\n", endY);
-                }
-            }
-#endif
-
             int x, y;
             for (y = startY; y < endY; y++)
             {
@@ -50,19 +28,11 @@ static inline void simulateStepOMPPlain(struct Field *currentField, struct Field
                 }
             }
 
-#ifdef OUTPUT_VTK
-            char prefix[1024];
-            snprintf(prefix, sizeof(prefix), "gol_mtp_%05d", timestep);
-            writeVTK2(currentField, pathPrefix, prefix, startX, endX, startY, endY);
-#endif
+            VTK_OUTPUT_SEGMENT(timestep, startX, endX, startY, endY)
         }
     }
 
-#ifdef OUTPUT_VTK
-    char masterPrefix[1024];
-    snprintf(masterPrefix, sizeof(masterPrefix), "gol_mtp_%05d", timestep);
-    writeVTK2Master(currentField, pathPrefix, masterPrefix);
-#endif
+    VTK_OUTPUT_MASTER(timestep)
 }
 
 #endif // GOL_OMP

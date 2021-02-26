@@ -3,8 +3,9 @@ CC = gcc
 CPPC = g++
 
 # compiler flags:
-#  -g    adds debugging information to the executable file
-#  -Wall turns on most, but not all, compiler warnings
+#  -g                     adds debugging information to the executable file
+#  -Wall                  turns on most, but not all, compiler warnings
+#  -Wno-format-truncation
 COMPILER_FLAGS     = -g -O3 -Wall -lc -lm -fopenmp -D _DEFAULT_SOURCE -march=native
 COMPILER_FLAGS_C   = -std=c99
 COMPILER_FLAGS_CPP = -std=c++17

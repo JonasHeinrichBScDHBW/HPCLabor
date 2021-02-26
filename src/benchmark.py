@@ -193,8 +193,11 @@ def calculate_segments(threads: int) -> List[Tuple[int]]:
 
 
 def run_benchmarks():
-    for size in [1024, 2048, 4096]:
+    for size in [2048, 4096]:
         for threads in range(1, 9):
+            if size == 2048 and threads in [1, 2, 3]:
+                continue
+
             for segments in calculate_segments(threads):
                 benchmark = Benchmark(
                     threads=threads,
