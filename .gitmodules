@@ -1,3 +1,6 @@
 [submodule "perforator"]
 	path = perforator
 	url = https://github.com/zyedidia/perforator
+[submodule "google-benchmark"]
+	path = google-benchmark
+	url = https://github.com/google/benchmark.git

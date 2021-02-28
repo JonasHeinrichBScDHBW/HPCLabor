@@ -1,0 +1,6 @@
+,Command being timed,User time (seconds),System time (seconds),Percent of CPU this job got,Elapsed (wall clock) time (h:mm:ss or m:ss),Average shared text size (kbytes),Average unshared data size (kbytes),Average stack size (kbytes),Average total size (kbytes),Maximum resident set size (kbytes),Average resident set size (kbytes),Major (requiring I/O) page faults,Minor (reclaiming a frame) page faults,Voluntary context switches,Involuntary context switches,Swaps,File system inputs,File system outputs,Socket messages sent,Socket messages received,Signals delivered,Page size (bytes),Exit status
+0,"""./build/gameoflife 500 4096 4096 4 1""",1086.67,0.34,385%,4:41.77,0,0,0,0,34736,0,0,19279,1434,2199,0,0,0,0,0,0,4096,0
+1,"""./build/gameoflife 500 4096 4096 4 1""",1085.07,0.32,386%,4:41.05,0,0,0,0,34808,0,0,18816,1455,2145,0,0,0,0,0,0,4096,0
+2,"""./build/gameoflife 500 4096 4096 4 1""",1079.62,0.36,387%,4:38.93,0,0,0,0,34576,0,0,18803,1414,2825,0,0,0,0,0,0,4096,0
+3,"""./build/gameoflife 500 4096 4096 4 1""",1088.79,0.30,385%,4:42.48,0,0,0,0,34604,0,0,18550,1449,2119,0,0,0,0,0,0,4096,0
+4,"""./build/gameoflife 500 4096 4096 4 1""",1086.23,0.33,385%,4:41.97,0,0,0,0,34832,0,0,19383,1442,2182,0,0,0,0,0,0,4096,0
