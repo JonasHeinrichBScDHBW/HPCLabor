@@ -1,6 +1,6 @@
 ,Command being timed,User time (seconds),System time (seconds),Percent of CPU this job got,Elapsed (wall clock) time (h:mm:ss or m:ss),Average shared text size (kbytes),Average unshared data size (kbytes),Average stack size (kbytes),Average total size (kbytes),Maximum resident set size (kbytes),Average resident set size (kbytes),Major (requiring I/O) page faults,Minor (reclaiming a frame) page faults,Voluntary context switches,Involuntary context switches,Swaps,File system inputs,File system outputs,Socket messages sent,Socket messages received,Signals delivered,Page size (bytes),Exit status
-0,"""./build/gameoflife 500 2048 2048""",62.02,0.22,375%,0:16.55,0,0,0,0,9824,0,0,2448,772,659,0,0,0,0,0,0,4096,0
-1,"""./build/gameoflife 500 2048 2048""",70.57,0.24,375%,0:18.84,0,0,0,0,10044,0,0,2566,841,768,0,0,0,0,0,0,4096,0
-2,"""./build/gameoflife 500 2048 2048""",74.77,0.23,370%,0:20.24,0,0,0,0,9896,0,0,2251,895,291,0,0,0,0,0,0,4096,0
-3,"""./build/gameoflife 500 2048 2048""",64.90,0.19,376%,0:17.29,0,0,0,0,9580,0,0,2420,639,208,0,0,0,0,0,0,4096,0
-4,"""./build/gameoflife 500 2048 2048""",64.33,0.14,375%,0:17.16,0,0,0,0,9556,0,0,2157,647,147,0,0,0,0,0,0,4096,0
+0,"""./build/gameoflife 500 4096 4096""",294.97,0.35,453%,1:05.18,0,0,0,0,34204,0,0,11152,1760,1325,0,0,0,0,0,0,4096,0
+1,"""./build/gameoflife 500 4096 4096""",297.75,0.32,454%,1:05.54,0,0,0,0,34520,0,0,9223,1761,1053,0,0,0,0,0,0,4096,0
+2,"""./build/gameoflife 500 4096 4096""",300.25,0.34,453%,1:06.21,0,0,0,0,34500,0,0,11268,1748,1370,0,0,0,0,0,0,4096,0
+3,"""./build/gameoflife 500 4096 4096""",295.79,0.32,454%,1:05.22,0,0,0,0,34440,0,0,9951,1785,1047,0,0,0,0,0,0,4096,0
+4,"""./build/gameoflife 500 4096 4096""",295.61,0.30,452%,1:05.33,0,0,0,0,34576,0,0,9989,1747,1271,0,0,0,0,0,0,4096,0

@@ -20,7 +20,7 @@
 #undef DEBUG
 
 #define VTK_OUTPUT
-// #undef VTK_OUTPUT
+#undef VTK_OUTPUT
 
 #ifdef VTK_OUTPUT
 

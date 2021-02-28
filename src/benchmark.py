@@ -6,7 +6,7 @@ from io import StringIO
 import math
 import pickle
 import re
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 import numpy as np
 import pandas as pd
@@ -193,11 +193,8 @@ def calculate_segments(threads: int) -> List[Tuple[int]]:
 
 
 def run_benchmarks():
-    for size in [2048, 4096]:
+    for size in [1024, 2048, 4096]:
         for threads in range(1, 9):
-            if size == 2048 and threads in [1, 2, 3]:
-                continue
-
             for segments in calculate_segments(threads):
                 benchmark = Benchmark(
                     threads=threads,
@@ -248,12 +245,22 @@ def parse_time_perforator(time_str):
     return timedelta(**time_params)
 
 
-def parse_time(time_str):
-    parts = time_str.split(":")
-    if len(parts) == 2:
-        return timedelta(hours=int(parts[0]), minutes=float(parts[1]))
-    else:
-        raise ValueError(f"Found an unkown format: {time_str=}")
+def parse_time(original_time_str: str) -> timedelta:
+    formats = ["%H:%-M:%S.%f", "%M:%S.%f"]
+
+    time_str = (2 - len(original_time_str.split(":")[0])) * "0" + original_time_str + (6 - len(original_time_str.split(".")[1])) * "0"
+
+    dt = None
+    for format in formats:
+        try:
+            dt = datetime.strptime(time_str, format)
+            break
+        except ValueError:
+            pass
+    if dt is None:
+        raise ValueError(f"Found an unkown format: {original_time_str=} {time_str=}")
+
+    return timedelta(hours=dt.hour, minutes=dt.minute, seconds=dt.second, microseconds=dt.microsecond)
 
 
 def wrong_log(number, basis):
@@ -263,7 +270,7 @@ def wrong_log(number, basis):
         return math.log(number, basis)
 
 
-def plot_3d_thread_size_time(benchmarks: List[Benchmark], z_metric="Elapsed (wall clock) time (h:mm:ss or m:ss)", z_label="$\log_4($Elapsed Wall Clock$)$", show=False):
+def plot_3d_thread_size_time(benchmarks: List[Benchmark], z_metric="Elapsed (wall clock) time (h:mm:ss or m:ss)", z_label="Elapsed Wall Clock Time", show=False):
     """
     3D Plot: Threads vs Size vs Time
     ================================
@@ -303,17 +310,17 @@ def plot_3d_thread_size_time(benchmarks: List[Benchmark], z_metric="Elapsed (wal
 
     ax.set_xlabel("$\log_4($Board Area$)$")
     ax.set_ylabel("$\log_2($Number of Threads$)$")
-    ax.set_zlabel(z_label)
+    ax.set_zlabel(f"$\log_4(${z_label} (s)$)$")
     plt.title(
-        f"Game of Life Benchmark: Number of Threads vs Board Area vs {z_metric} (10 runs)", fontsize=14)
+        f"Game of Life Benchmark: Number of Threads vs Board Area vs {z_label} ({benchmark.data[z_metric].count()} runs)", fontsize=14)
     ax.view_init(15, 135)
 
-    plt.savefig(str(DIR_PLOTS.joinpath(f"thread_size_{z_metric}_3d.png")))
+    plt.savefig(str(DIR_PLOTS.joinpath(f"thread_size_{z_label.lower().replace(' ', '_')}_3d.png")))
     if show:
         plt.show()
 
 
-def plot_2d_segments_time(benchmarks: List[Benchmark], board_size=1024, y_metric="Elapsed (wall clock) time (h:mm:ss or m:ss)", y_label="$\log_4($Elapsed Wall Clock$)$", show=False):
+def plot_2d_segments_time(benchmarks: List[Benchmark], board_size=1024, y_metric="Elapsed (wall clock) time (h:mm:ss or m:ss)", y_label="Elapsed Wall Clock Time", show=False):
     """
     2D Plot: Threads vs Size e
     ================================
@@ -329,8 +336,8 @@ def plot_2d_segments_time(benchmarks: List[Benchmark], board_size=1024, y_metric
         if benchmark.width != board_size:
             continue
 
-        x.append("x: " + str(benchmark.segments_x) +
-                 "\ny: " + str(benchmark.segments_y) +
+        x.append("x: " + (str(benchmark.segments_x) if benchmark.segments_x is not None else "N") +
+                 "\ny: " + (str(benchmark.segments_y) if benchmark.segments_y is not None else "N") +
                  "\nt: " + str(benchmark.threads))
 
         metrics = []
@@ -343,8 +350,8 @@ def plot_2d_segments_time(benchmarks: List[Benchmark], board_size=1024, y_metric
                 metrics.append(metric)
         
         series = pd.Series(metrics)
-        y.append(wrong_log(series.mean(), 4))
-        y_err.append(wrong_log(series.std(), 4))
+        y.append(series.mean())
+        y_err.append(series.std())
 
     X = np.array(x)
     Y = np.array(y)
@@ -354,41 +361,30 @@ def plot_2d_segments_time(benchmarks: List[Benchmark], board_size=1024, y_metric
 
     fig = plt.figure(figsize=FIGURE_SIZE)
     ax = fig.add_subplot(111)
-    ax.bar(np.arange(len(Y_sort)), Y_sort, yerr=y_err, capsize=10)
+    ax.bar(np.arange(len(Y_sort)), Y_sort, yerr=y_err, capsize=7)
     plt.xticks(range(len(Y_sort)), X_sort)
 
     ax.set_xlabel("Segments")
-    ax.set_ylabel(y_label)
+    ax.set_ylabel(f"{y_label} (s)")
     plt.title(
-        f"Game of Life Benchmark: Segments vs {y_metric} (10 runs | Board Size {board_size})", fontsize=14)
-    ax.set_ylabel(y_label)
+        f"Game of Life Benchmark: Segments vs {y_label} ({benchmark.data[y_metric].count()} runs | Board Size {board_size})", fontsize=14)
 
-    plt.savefig(str(DIR_PLOTS.joinpath(f"segments_{y_metric}_2d.png")))
+    plt.savefig(str(DIR_PLOTS.joinpath(f"segments_{y_label.lower().replace(' ', '_')}_2d.png")))
     if show:
         plt.show()
 
 
-def visualize_benchmarks(benchmarks: List[Benchmark]):
-    # Plots
-    # =====
-    #
-    # - Time elapsed
-    #     - x: number of threads
-    #     - y: time elapsed
-    # - Time elapsed
-    #     - x: width (1024, 2048, 4096)
-    #     - y: time elapsed
-
-    plot_3d_thread_size_time(benchmarks)
-    plot_2d_segments_time(benchmarks, board_size=1024, show=True)
+def visualize_benchmarks(benchmarks: List[Benchmark], show=True):
+    plot_3d_thread_size_time(benchmarks, show=show)
+    plot_2d_segments_time(benchmarks, board_size=1024, show=show)
 
 
 def main():
     build()
     run_benchmarks()
 
-    # benchmarks = load_benchmarks()
-    # visualize_benchmarks(benchmarks)
+    benchmarks = load_benchmarks()
+    visualize_benchmarks(benchmarks)
 
 
 if __name__ == "__main__":
