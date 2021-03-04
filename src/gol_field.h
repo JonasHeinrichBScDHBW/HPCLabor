@@ -28,21 +28,21 @@
     char pathPrefix[1024]; \
     snprintf(pathPrefix, sizeof(pathPrefix), "output/"); 
 
-#define VTK_OUTPUT_SEGMENT(TIMESTEP, START_X, END_X, START_Y, END_Y) \
+#define VTK_OUTPUT_SEGMENT(CURRENT_FIELD, TIMESTEP, START_X, END_X, START_Y, END_Y) \
     char prefix[1024]; \
     snprintf(prefix, sizeof(prefix), "gol_mtp_%05d", TIMESTEP); \
-    writeVTK2(currentField, pathPrefix, prefix, START_X, END_X, START_Y, END_Y); \
+    writeVTK2(CURRENT_FIELD, pathPrefix, prefix, START_X, END_X, START_Y, END_Y); \
 
-#define VTK_OUTPUT_MASTER(TIMESTEP) \
+#define VTK_OUTPUT_MASTER(CURRENT_FIELD, TIMESTEP) \
     char masterPrefix[1024]; \
     snprintf(masterPrefix, sizeof(masterPrefix), "gol_mtp_%05d", TIMESTEP); \
-    writeVTK2Master(currentField, pathPrefix, masterPrefix);
+    writeVTK2Master(CURRENT_FIELD, pathPrefix, masterPrefix);
 
 #else
 
 #define VTK_INIT
-#define VTK_OUTPUT_SEGMENT(TIMESTEP, START_X, END_X, START_Y, END_Y)
-#define VTK_OUTPUT_MASTER(TIMESTEP)
+#define VTK_OUTPUT_SEGMENT(CURRENT_FIELD, TIMESTEP, START_X, END_X, START_Y, END_Y)
+#define VTK_OUTPUT_MASTER(CURRENT_FIELD, TIMESTEP)
 
 #endif // VTK_OUTPUT
 
@@ -103,12 +103,23 @@ static inline void initializeField(struct Field *field, int width, int height, i
             segmentsX = numberThreadFactorLarge;
             segmentsY = numberThreadFactorSmall;
         }
+
+#ifdef DEBUG
+        printf("Number Threads: %d\n", numberThreads);
+        printf("Segments X: %d\n", segmentsX);
+        printf("Segments Y: %d\n", segmentsY);
+#endif
     }
 
     field->segmentsX = segmentsX;
     field->segmentsY = segmentsY;
     field->factorX = field->width / (double)field->segmentsX;
     field->factorY = field->height / (double)field->segmentsY;
+
+#ifdef DEBUG
+        printf("Factor X: %lf\n", field->factorX);
+        printf("Factor Y: %lf\n", field->factorY);
+#endif
 
     field->field = (FieldType *)calloc(width * height, sizeof(FieldType));
 }
@@ -224,8 +235,6 @@ void writeVTK2Master(struct Field *data, char pathPrefix[1024], char prefix[1024
     fprintf(fp, "</VTKFile>\n");
     fclose(fp);
 }
-
-
 
 void printField(struct Field *currentField)
 {

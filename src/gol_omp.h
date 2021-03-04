@@ -28,11 +28,11 @@ static inline void simulateStepOMPPlain(struct Field *currentField, struct Field
                 }
             }
 
-            VTK_OUTPUT_SEGMENT(timestep, startX, endX, startY, endY)
+            VTK_OUTPUT_SEGMENT(currentField, timestep, startX, endX, startY, endY)
         }
     }
 
-    VTK_OUTPUT_MASTER(timestep)
+    VTK_OUTPUT_MASTER(currentField, timestep)
 }
 
 #endif // GOL_OMP

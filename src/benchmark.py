@@ -149,6 +149,7 @@ def run_benchmark(benchmark: Benchmark) -> str:
 
     env = dict(os.environ)
     env.update({"OMP_NUM_THREADS": str(benchmark.threads)})
+    env.update({"OMP_DYNAMIC ": "false"})
     env["PATH"] = str(DIR_PERFORATOR.resolve()) + ":" + env["PATH"]
 
     retry = True
@@ -369,7 +370,7 @@ def plot_2d_segments_time(benchmarks: List[Benchmark], board_size=1024, y_metric
     plt.title(
         f"Game of Life Benchmark: Segments vs {y_label} ({benchmark.data[y_metric].count()} runs | Board Size {board_size})", fontsize=14)
 
-    plt.savefig(str(DIR_PLOTS.joinpath(f"segments_{y_label.lower().replace(' ', '_')}_2d.png")))
+    plt.savefig(str(DIR_PLOTS.joinpath(f"segments_{y_label.lower().replace(' ', '_')}_{board_size}_2d.png")))
     if show:
         plt.show()
 
@@ -377,11 +378,13 @@ def plot_2d_segments_time(benchmarks: List[Benchmark], board_size=1024, y_metric
 def visualize_benchmarks(benchmarks: List[Benchmark], show=True):
     plot_3d_thread_size_time(benchmarks, show=show)
     plot_2d_segments_time(benchmarks, board_size=1024, show=show)
+    # plot_2d_segments_time(benchmarks, board_size=2048, show=show)
+    # plot_2d_segments_time(benchmarks, board_size=4096, show=show)
 
 
 def main():
-    build()
-    run_benchmarks()
+    # build()
+    # run_benchmarks()
 
     benchmarks = load_benchmarks()
     visualize_benchmarks(benchmarks)

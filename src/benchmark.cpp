@@ -9,7 +9,6 @@
 static void BM_SimulateStep(benchmark::State &state, simulate_func simulateFunc)
 {
     int boardSize = state.range(0);
-    int threads = state.range(1);
 
     struct Field field1;
     struct Field field2;
@@ -21,7 +20,7 @@ static void BM_SimulateStep(benchmark::State &state, simulate_func simulateFunc)
     fillRandom(currentFieldPtr);
 
     omp_set_dynamic(0);
-    omp_set_num_threads(threads);
+    omp_set_num_threads(1);
 
     struct Field *temp;
     int timestep = 0;
@@ -46,18 +45,18 @@ static void BM_SimulateStep(benchmark::State &state, simulate_func simulateFunc)
     free(field2.field);
 }
 
+// #define GOL_BENCHMARK_BOARD_SIZES \
+//     {                             \
+//         1 << 10, 1 << 11, 1 << 12 \
+//     }
+
 #define GOL_BENCHMARK_BOARD_SIZES \
     {                             \
-        1 << 10, 1 << 11, 1 << 12 \
+        1026                      \
     }
-#define GOL_BENCHMARK_THREADS  \
-    {                          \
-        1, 2, 3, 4, 5, 6, 7, 8 \
-    }
-#define GOL_BENCHMARK_RANGE(Threads) ArgsProduct({GOL_BENCHMARK_BOARD_SIZES, Threads})
-
-BENCHMARK_CAPTURE(BM_SimulateStep, Vanilla_Plain, &simulateStepVanillaPlain)->GOL_BENCHMARK_RANGE({1});
-BENCHMARK_CAPTURE(BM_SimulateStep, OMP_Plain, &simulateStepOMPPlain)->GOL_BENCHMARK_RANGE(GOL_BENCHMARK_THREADS);
+BENCHMARK_CAPTURE(BM_SimulateStep, Vanilla_Plain, &simulateStepVanillaPlain)->Args(GOL_BENCHMARK_BOARD_SIZES);
+// BENCHMARK_CAPTURE(BM_SimulateStep, Vanilla_SIMD, &simulateStepVanillaSIMD)->Args(GOL_BENCHMARK_BOARD_SIZES);
+// BENCHMARK_CAPTURE(BM_SimulateStep, OMP_Plain, &simulateStepOMPPlain)->Args(GOL_BENCHMARK_BOARD_SIZES);
 
 #undef BenchmarkRange
 

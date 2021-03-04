@@ -7,20 +7,21 @@ static inline int countNeighbors(struct Field *currentField, int x, int y)
 {
     int sum = 0;
 
-    for (int y1 = y - 1; y1 <= y + 1; y1++)
-    {
-        for (int x1 = x - 1; x1 <= x + 1; x1++)
-        {
-            sum += currentField->field[calcIndex(currentField->width,
-                                                 (x1 + currentField->width) % currentField->width,
-                                                 (y1 + currentField->height) % currentField->height)];
-        }
-    }
-    sum -= currentField->field[calcIndex(currentField->width, x, y)];
+    sum += currentField->field[calcIndex(currentField->width, x - 1, y - 1)];
+    sum += currentField->field[calcIndex(currentField->width, x + 0, y - 1)];
+    sum += currentField->field[calcIndex(currentField->width, x + 1, y - 1)];
+
+    sum += currentField->field[calcIndex(currentField->width, x - 1, y + 0)];
+    sum += currentField->field[calcIndex(currentField->width, x + 1, y + 0)];
+
+    sum += currentField->field[calcIndex(currentField->width, x - 1, y + 1)];
+    sum += currentField->field[calcIndex(currentField->width, x + 0, y + 1)];
+    sum += currentField->field[calcIndex(currentField->width, x + 1, y + 1)];
+
     return sum;
 }
 
-void golKernel(struct Field *currentField, struct Field *newField, int x, int y)
+static inline void golKernel(struct Field *currentField, struct Field *newField, int x, int y)
 {
     int n = countNeighbors(currentField, x, y);
 

@@ -12,7 +12,7 @@ void simulateSteps(int timesteps, struct Field *currentField, struct Field *newF
 
 #ifdef DEBUG
         printf("Timestep: %ld\n", t);
-        show(&currentField);
+        printField(&currentField);
         usleep(200000);
 #endif
 
@@ -52,19 +52,19 @@ int main(int c, char **argv)
     if (c > 2)
         width = atoi(argv[2]);
     if (c > 3)
-        height = atoi(argv[2]);
+        height = atoi(argv[3]);
     if (c > 4)
-        segmentsX = atoi(argv[2]);
+        segmentsX = atoi(argv[4]);
     if (c > 5)
-        segmentsY = atoi(argv[2]);
+        segmentsY = atoi(argv[5]);
 
     // Default values
     if (timesteps <= 0)
         timesteps = 100;
     if (width <= 0)
-        width = 30;
+        width = 1026;
     if (height <= 0)
-        height = 30;
+        height = 1026;
 
     runSimulation(timesteps, width, height, segmentsX, segmentsY);
 

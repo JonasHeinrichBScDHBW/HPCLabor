@@ -24,3 +24,16 @@ cd ..
 
 # Install paraview manually
 # https://www.paraview.org/download/
+
+# Install Intel C/C++ compiler for AVX512
+# Commented out: It's uncommonly supported by hardware and large (14GB). Be sure you want this!
+
+# sudo -E apt autoremove intel-hpckit intel-basekit
+# cd /tmp
+# wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+# sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+# rm GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+# echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+# sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
+# sudo apt update
+# sudo apt install intel-basekit
