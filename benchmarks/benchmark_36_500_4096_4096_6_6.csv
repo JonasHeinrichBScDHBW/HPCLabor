@@ -1,0 +1,6 @@
+,Command being timed,User time (seconds),System time (seconds),Percent of CPU this job got,Elapsed (wall clock) time (h:mm:ss or m:ss),Average shared text size (kbytes),Average unshared data size (kbytes),Average stack size (kbytes),Average total size (kbytes),Maximum resident set size (kbytes),Average resident set size (kbytes),Major (requiring I/O) page faults,Minor (reclaiming a frame) page faults,Voluntary context switches,Involuntary context switches,Swaps,File system inputs,File system outputs,Socket messages sent,Socket messages received,Signals delivered,Page size (bytes),Exit status
+0,"""/data/d074080/hpc-labor/build/gameoflife 500 4096 4096 6 6""",67.03,0.02,3343%,0:02.00,0,0,0,0,34760,0,0,2459,973,627,0,0,0,0,0,0,4096,0
+1,"""/data/d074080/hpc-labor/build/gameoflife 500 4096 4096 6 6""",70.81,0.06,3286%,0:02.15,0,0,0,0,34696,0,0,2611,4992,897,0,0,0,0,0,0,4096,0
+2,"""/data/d074080/hpc-labor/build/gameoflife 500 4096 4096 6 6""",67.79,0.05,3232%,0:02.09,0,0,0,0,35008,0,0,2643,5255,1697,0,0,0,0,0,0,4096,0
+3,"""/data/d074080/hpc-labor/build/gameoflife 500 4096 4096 6 6""",75.64,0.22,3273%,0:02.31,0,0,0,0,35092,0,0,5537,7897,1065,0,0,0,0,0,0,4096,0
+4,"""/data/d074080/hpc-labor/build/gameoflife 500 4096 4096 6 6""",73.48,0.13,3323%,0:02.21,0,0,0,0,39176,0,0,5711,3878,3804,0,0,0,0,0,0,4096,0

@@ -23,9 +23,10 @@ DIR_OUTPUT = DIR_ROOT.joinpath("output")
 DIR_PERFORATOR = DIR_ROOT.joinpath("perforator")
 DIR_PLOTS = DIR_ROOT.joinpath("plots")
 
-TEST_COMMAND = f"./{str(DIR_BUILD.joinpath('gameoflife'))}"
+TEST_COMMAND = str(DIR_BUILD.joinpath('gameoflife').resolve())
 TEST_FUNCTION = "simulateSteps"
 
+NUMBER_CORES = 8
 RUNS = 5
 TIMESTEPS = 500  # determined to be >20s and <1min
 
@@ -195,7 +196,12 @@ def calculate_segments(threads: int) -> List[Tuple[int]]:
 
 def run_benchmarks():
     for size in [1024, 2048, 4096]:
-        for threads in range(1, 9):
+        for threads in range(1, NUMBER_CORES + 1):
+            # On larger core machines
+            all_segments = calculate_segments(threads)
+            if threads > 8 and not len(all_segments) >= 6:
+                continue
+
             for segments in calculate_segments(threads):
                 benchmark = Benchmark(
                     threads=threads,
@@ -378,8 +384,8 @@ def plot_2d_segments_time(benchmarks: List[Benchmark], board_size=1024, y_metric
 def visualize_benchmarks(benchmarks: List[Benchmark], show=True):
     plot_3d_thread_size_time(benchmarks, show=show)
     plot_2d_segments_time(benchmarks, board_size=1024, show=show)
-    # plot_2d_segments_time(benchmarks, board_size=2048, show=show)
-    # plot_2d_segments_time(benchmarks, board_size=4096, show=show)
+    plot_2d_segments_time(benchmarks, board_size=2048, show=show)
+    plot_2d_segments_time(benchmarks, board_size=4096, show=show)
 
 
 def main():

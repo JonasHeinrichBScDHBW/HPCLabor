@@ -1,13 +1,13 @@
 # the compiler: gcc for C program, define as g++ for C++
-CC = icx # gcc | icx
-CPPC = icpx # g++ | icpx
+CC = gcc # gcc | icx
+CPPC = g++ # g++ | icpx
 
 # compiler flags:
 #  -g                     adds debugging information to the executable file
 #  -Wall                  turns on most, but not all, compiler warnings
 #  -Wno-format-truncation
-ARCHITECTURE_DEFINITIONS = -DAVX_512 # -DAVX_2 | -DAVX_512
-COMPILER_FLAGS           = -g -O3 -Wall -lc -lm -fopenmp -D _DEFAULT_SOURCE -march=skylake-avx512
+ARCHITECTURE_DEFINITIONS = -DAVX_2 # -DAVX_2 | -DAVX_512
+COMPILER_FLAGS           = -g -O3 -Wall -lc -lm -fopenmp -D _DEFAULT_SOURCE -march=skylake-avx512 # -march=native | -march=skylake-avx512
 COMPILER_FLAGS_C         = -std=c99
 COMPILER_FLAGS_CPP       = -std=c++17
 
@@ -44,4 +44,5 @@ scratchpad: src/scratchpad.c
 
 # Remove builds / Cleanup
 clean:
+	find output ! -name '.gitignore' -type f -exec rm -f {} +
 	find build ! -name '.gitignore' -type f -exec rm -f {} +
