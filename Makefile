@@ -2,12 +2,15 @@
 CC = gcc # gcc | icx
 CPPC = g++ # g++ | icpx
 
+DEBUG_FLAGS = -DNO_DEBUG
+# DEBUG_FLAGS = -DVTK_OUTPUT -DDEBUG
+
 # compiler flags:
 #  -g                     adds debugging information to the executable file
 #  -Wall                  turns on most, but not all, compiler warnings
 #  -Wno-format-truncation
 ARCHITECTURE_DEFINITIONS = -DAVX_2 # -DAVX_2 | -DAVX_512
-COMPILER_FLAGS           = -g -O3 -Wall -lc -lm -fopenmp -D _DEFAULT_SOURCE -march=skylake-avx512 # -march=native | -march=skylake-avx512
+COMPILER_FLAGS           = -g -O3 -Wall -lc -lm -fopenmp -D _DEFAULT_SOURCE -march=native $(DEBUG_FLAGS) # -march=native | -march=skylake-avx512
 COMPILER_FLAGS_C         = -std=c99
 COMPILER_FLAGS_CPP       = -std=c++17
 
@@ -19,7 +22,7 @@ source-intel-env:
 
 # Build pure C variante
 build-gol: src/gameoflife.c
-	$(CC) $(ARCHITECTURE_DEFINITIONS) src/gameoflife.c  $(COMPILER_FLAGS_C)   $(COMPILER_FLAGS) -o build/gameoflife
+	$(CC) $(ARCHITECTURE_DEFINITIONS) src/gameoflife.c  $(COMPILER_FLAGS_C) $(COMPILER_FLAGS) -o build/gameoflife
 
 # Run pure C variant
 run-gol: build-gol
@@ -31,7 +34,7 @@ build-benchmark-cpp: src/benchmark.cpp
 
 # Run C++ Benchmark Wrapper
 run-benchmark-cpp: build-benchmark-cpp
-	./build/benchmark --benchmark_report_aggregates_only=true --benchmark_repetitions=10
+	./build/benchmark --benchmark_report_aggregates_only=true --benchmark_repetitions=10 --benchmark_out_format=csv --benchmark_out=benchmarks/_cpp_benchmark.csv
 
 # Run Python Benchmark wrapper
 run-benchmark: all

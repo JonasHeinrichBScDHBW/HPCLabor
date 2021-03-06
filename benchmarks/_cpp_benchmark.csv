@@ -1,0 +1,19 @@
+2021-03-05T23:37:36-08:00
+Running ./build/benchmark
+Run on (8 X 1896 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x4)
+  L1 Instruction 32 KiB (x4)
+  L2 Unified 256 KiB (x4)
+  L3 Unified 6144 KiB (x4)
+Load Average: 1.14, 0.59, 0.42
+name,iterations,real_time,cpu_time,time_unit,bytes_per_second,items_per_second,label,error_occurred,error_message
+"BM_SimulateStep/Vanilla_Plain/1026_mean",10,6.5926e+06,6.59208e+06,ns,,1.61921e+08,,,
+"BM_SimulateStep/Vanilla_Plain/1026_median",10,6.31268e+06,6.31162e+06,ns,,1.66814e+08,,,
+"BM_SimulateStep/Vanilla_Plain/1026_stddev",10,879091,878858,ns,,1.87899e+07,,,
+"BM_SimulateStep/OMP_Plain/1026_mean",10,8.02317e+06,8.01997e+06,ns,,1.35431e+08,,,
+"BM_SimulateStep/OMP_Plain/1026_median",10,7.34121e+06,7.34099e+06,ns,,1.43494e+08,,,
+"BM_SimulateStep/OMP_Plain/1026_stddev",10,1.55459e+06,1.55334e+06,ns,,2.40953e+07,,,
+"BM_SimulateStep/Vanilla_SIMD/1026_mean",10,213318,213291,ns,,5.24023e+09,,,
+"BM_SimulateStep/Vanilla_SIMD/1026_median",10,200691,200681,ns,,5.24567e+09,,,
+"BM_SimulateStep/Vanilla_SIMD/1026_stddev",10,57022.9,57004.4,ns,,1.29283e+09,,,

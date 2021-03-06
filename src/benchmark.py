@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from pathlib import Path
 import subprocess
 import os
@@ -225,13 +225,74 @@ def run_benchmarks():
 def load_benchmarks() -> List[Benchmark]:
     benchmarks = []
     for file_path in list(DIR_BENCHMARKS.glob("*.csv")):
+        if "_cpp_benchmark.csv" in str(file_path):
+            continue
         benchmarks.append(Benchmark.load(file_path))
     return benchmarks
+
+
+def run_cpp_benchmark():
+    subprocess.call(["make", "run-cpp-benchmark"])
 
 
 #
 # Plots
 #
+
+
+def plot_cpp_benchmark(show=False):
+    with open(str(DIR_BENCHMARKS.joinpath("_cpp_benchmark.csv")), "r") as f:
+        raw_lines = f.readlines()
+    
+    section_divider = 0
+    for i, line in enumerate(raw_lines):
+        if line.startswith("name,"):
+            section_divider = i
+            break
+
+    csv_lines = raw_lines[section_divider:]
+
+    data_item = None
+    data_items: List[Dict] = []
+    current_name = ""
+    for line in csv_lines[1:]:
+        # name,iterations,real_time,cpu_time,time_unit,bytes_per_second,items_per_second,label,error_occurred,error_message
+        parts = line.split(",")
+        # "BM_SimulateStep/Vanilla_Plain/1026_mean"
+        name_parts = parts[0].replace("\"", "").split("/")
+        if name_parts[1] != current_name:
+            if data_item is not None:
+                data_items.append(data_item)
+            current_name = name_parts[1]
+            data_item = {
+                "name": current_name
+            }
+        
+        if "mean" in name_parts[2]:
+            data_item["mean"] = float(parts[6])
+        elif "median" in name_parts[2]:
+            data_item["median"] = float(parts[6])
+        elif "stddev" in name_parts[2]:
+            data_item["stddev"] = float(parts[6])
+    data_items.append(data_item)
+    df = pd.DataFrame(data_items)
+
+    x_pos = np.arange(len(data_items))
+
+    fig, ax = plt.subplots()
+    ax.bar(x_pos, df["mean"], yerr=df["stddev"], align='center', alpha=0.5, ecolor='black', capsize=10)
+    ax.set_ylabel("Items per Second")
+    ax.set_yscale("log")
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels(df["name"])
+    ax.set_title("Performance of Implementation Variants (single thread, $1026^2$ cells)")
+
+    # Save the figure and show
+    plt.tight_layout()
+    plt.savefig(str(DIR_PLOTS.joinpath("implementation_variants.png")))
+    if show:
+        plt.show()
+
 
 
 PARSE_TIME_REGEX_PERFORATOR = re.compile(
@@ -389,11 +450,14 @@ def visualize_benchmarks(benchmarks: List[Benchmark], show=True):
 
 
 def main():
+    # run_cpp_benchmark()
+
     # build()
     # run_benchmarks()
 
     benchmarks = load_benchmarks()
     visualize_benchmarks(benchmarks)
+    plot_cpp_benchmark(True)
 
 
 if __name__ == "__main__":

@@ -16,33 +16,27 @@
 #define MAX(a, b) ((a) > (b) ? a : b)
 #define MIN(a, b) ((a) < (b) ? a : b)
 
-#define DEBUG
-#undef DEBUG
-
-#define VTK_OUTPUT
-#undef VTK_OUTPUT
-
 #ifdef VTK_OUTPUT
 
-#define VTK_INIT \
+#define VTK_INIT(TIMESTEP) \
     char pathPrefix[1024]; \
+    char segmentPrefix[1024]; \
+    snprintf(segmentPrefix, sizeof(segmentPrefix), "gol_mtp_%05d", TIMESTEP); \
     snprintf(pathPrefix, sizeof(pathPrefix), "output/"); 
 
-#define VTK_OUTPUT_SEGMENT(CURRENT_FIELD, TIMESTEP, START_X, END_X, START_Y, END_Y) \
-    char prefix[1024]; \
-    snprintf(prefix, sizeof(prefix), "gol_mtp_%05d", TIMESTEP); \
-    writeVTK2(CURRENT_FIELD, pathPrefix, prefix, START_X, END_X, START_Y, END_Y); \
+#define VTK_OUTPUT_SEGMENT(CURRENT_FIELD, START_X, END_X, START_Y, END_Y) \
+    writeVTK2(CURRENT_FIELD, pathPrefix, segmentPrefix, START_X, END_X, START_Y, END_Y); \
 
-#define VTK_OUTPUT_MASTER(CURRENT_FIELD, TIMESTEP) \
+#define VTK_OUTPUT_MASTER(CURRENT_FIELD, TIMESTEP, SEGMENTS_X, SEGMENTS_Y) \
     char masterPrefix[1024]; \
     snprintf(masterPrefix, sizeof(masterPrefix), "gol_mtp_%05d", TIMESTEP); \
-    writeVTK2Master(CURRENT_FIELD, pathPrefix, masterPrefix);
+    writeVTK2Master(CURRENT_FIELD, pathPrefix, masterPrefix, SEGMENTS_X, SEGMENTS_Y);
 
 #else
 
-#define VTK_INIT
-#define VTK_OUTPUT_SEGMENT(CURRENT_FIELD, TIMESTEP, START_X, END_X, START_Y, END_Y)
-#define VTK_OUTPUT_MASTER(CURRENT_FIELD, TIMESTEP)
+#define VTK_INIT(TIMESTEP)
+#define VTK_OUTPUT_SEGMENT(CURRENT_FIELD, START_X, END_X, START_Y, END_Y)
+#define VTK_OUTPUT_MASTER(CURRENT_FIELD, TIMESTEP, SEGMENTS_X, SEGMENTS_Y)
 
 #endif // VTK_OUTPUT
 
@@ -116,6 +110,10 @@ static inline void initializeField(struct Field *field, int width, int height, i
     field->factorX = field->width / (double)field->segmentsX;
     field->factorY = field->height / (double)field->segmentsY;
 
+    // Ghost Layer
+    field->width += 2;
+    field->height += 2;
+
 #ifdef DEBUG
         printf("Factor X: %lf\n", field->factorX);
         printf("Factor Y: %lf\n", field->factorY);
@@ -133,7 +131,7 @@ static inline void initializeFieldOther(struct Field *field, struct Field *other
     field->factorX = other->factorX;
     field->factorY = other->factorY;
 
-    field->field = (FieldType *)calloc(other->width * other->height, sizeof(FieldType));
+    field->field = (FieldType *)calloc((other->width) * (other->height), sizeof(FieldType));
 }
 
 void initializeFields(struct Field *currentField, struct Field *newField, int width, int height, int segmentsX, int segmentsY)
@@ -144,10 +142,32 @@ void initializeFields(struct Field *currentField, struct Field *newField, int wi
 
 static inline void fillRandom(struct Field *currentField)
 {
-    int i;
-    for (i = 0; i < currentField->width * currentField->height; i++)
+    int x, y;
+    for (y = 0; y < currentField->height; y++)
     {
-        currentField->field[i] = (rand() < RAND_MAX / 10) ? 1 : 0;
+        for (x = 0; x < currentField->width; x++)
+        {
+            if(y == 0)
+            {
+                currentField->field[calcIndex(currentField->width, x, y)] = 0;
+            }
+            else if(x == 0)
+            {
+                currentField->field[calcIndex(currentField->width, x, y)] = 0;
+            }
+            else if(x == currentField->width - 1)
+            {
+                currentField->field[calcIndex(currentField->width, x, y)] = 0;
+            }
+            else if(y == currentField->height - 1)
+            {
+                currentField->field[calcIndex(currentField->width, x, y)] = 0;
+            }
+            else
+            {
+                currentField->field[calcIndex(currentField->width, x, y)] = (rand() < RAND_MAX / 10) ? 1 : 0;
+            }
+        }
     }
 }
 
@@ -197,7 +217,7 @@ void writeVTK2(struct Field *data, char pathPrefix[1024], char prefix[1024], int
     fclose(fp);
 }
 
-void writeVTK2Master(struct Field *data, char pathPrefix[1024], char prefix[1024])
+void writeVTK2Master(struct Field *data, char pathPrefix[1024], char prefix[1024], int segmentsX, int segmentsY)
 {
     char filename[2048];
 
@@ -216,19 +236,45 @@ void writeVTK2Master(struct Field *data, char pathPrefix[1024], char prefix[1024
     fprintf(fp, "<DataArray type=\"Float32\" Name=\"%s%s\" format=\"appended\" offset=\"0\"/>\n", pathPrefix, prefix);
     fprintf(fp, "</PCellData>\n");
 
-    for (int i = 0; i < data->segmentsX; i++)
+    if(segmentsX && segmentsY)
     {
-        for (int j = 0; j < data->segmentsY; j++)
+        for (int i = 0; i < data->segmentsX; i++)
         {
-            int startX = data->factorX * i + 0.5;
-            int startY = data->factorY * j + 0.5;
+            for (int j = 0; j < data->segmentsY; j++)
+            {
+                int startX = 1 + data->factorX * i + 0.5;
+                int startY = 1 + data->factorY * j + 0.5;
 
-            int endX = data->factorX * (i + 1) + 0.5;
-            int endY = data->factorY * (j + 1) + 0.5;
-            fprintf(fp, "<Piece Extent=\"%d %d %d %d 0 0\" Source=\"%s_%d_%d.vti\"/>\n",
-                    startX, endX, startY, endY,
-                    prefix, startX, startY);
+                int endX = 1 + data->factorX * (i + 1) + 0.5;
+                int endY = 1 + data->factorY * (j + 1) + 0.5;
+                fprintf(fp, "<Piece Extent=\"%d %d %d %d 0 0\" Source=\"%s_%d_%d.vti\"/>\n",
+                        startX, endX, startY, endY,
+                        prefix, startX, startY);
+            }
         }
+
+        // Write global ghost layer
+        // upper and lower (including corners)
+        fprintf(fp, "<Piece Extent=\"%d %d %d %d 0 0\" Source=\"%s_%d_%d.vti\"/>\n",
+                0, data->width, 0, 1,
+                prefix, 0, 0);
+        fprintf(fp, "<Piece Extent=\"%d %d %d %d 0 0\" Source=\"%s_%d_%d.vti\"/>\n",
+                0, data->width, data->height - 1, data->height,
+                prefix, 0, data->height - 1);
+
+        // left and right (excluding corners)
+        fprintf(fp, "<Piece Extent=\"%d %d %d %d 0 0\" Source=\"%s_%d_%d.vti\"/>\n",
+                0, 1, 1, data->height - 1,
+                prefix, 0, 1);
+        fprintf(fp, "<Piece Extent=\"%d %d %d %d 0 0\" Source=\"%s_%d_%d.vti\"/>\n",
+                data->width - 1, data->width, 1, data->height - 1,
+                prefix, data->width - 1, 1);
+    }
+    else
+    {
+        fprintf(fp, "<Piece Extent=\"%d %d %d %d 0 0\" Source=\"%s_%d_%d.vti\"/>\n",
+                0, data->width, 0, data->height,
+                prefix, 0, 0);
     }
 
     fprintf(fp, "</PImageData>\n");

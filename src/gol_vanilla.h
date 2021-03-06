@@ -10,19 +10,19 @@
 
 static inline void simulateStepVanillaPlain(struct Field *currentField, struct Field *newField, int timestep)
 {
-    VTK_INIT
+    VTK_INIT(timestep)
 
     int x, y;
-    for (y = 0; y < currentField->height; y++)
+    for (y = 1; y < currentField->height - 1; y++)
     {
-        for (x = 0; x < currentField->width; x++)
+        for (x = 1; x < currentField->width - 1; x++)
         {
             golKernel(currentField, newField, x, y);
         }
     }
 
-    VTK_OUTPUT_SEGMENT(currentField, timestep, 0, currentField->width, 0, currentField->height)
-    VTK_OUTPUT_MASTER(currentField, timestep)
+    VTK_OUTPUT_SEGMENT(currentField, 0, currentField->width, 0, currentField->height)
+    VTK_OUTPUT_MASTER(currentField, timestep, 0, 0)
 }
 
 
@@ -33,7 +33,7 @@ static inline void simulateStepVanillaSIMD(struct Field *currentField, struct Fi
     // Assumes that FieldType is a char
     assert(sizeof(FieldType) == 1);
 
-    VTK_INIT
+    VTK_INIT(timestep)
 
     static bool constArraysInitialized = false;
 
@@ -81,16 +81,13 @@ static inline void simulateStepVanillaSIMD(struct Field *currentField, struct Fi
     //
     // We therefore have to compute these borders the old fashioned way.
     //
-    // | width                                                            |
-    // | SISD Segment Left |  SIMD Segment           | SISD Segment Right |
-    // | >=1 and rest      |  INT8_REGISTER_SIZE * n | 1                  |
-    //  0 - 29                30 - 1022              | 1023
-    int sisdSegmentLeftStart = 0;
-    int sisdSegmentLeftEnd = ((currentField->width - 2) % REGISTER_SIZE_INT8);
+    // | width                                       |
+    // | SISD Segment Left |  SIMD Segment           |
+    // | rest              |  INT8_REGISTER_SIZE * n |
+
+    int sisdSegmentLeftStart = 1;
+    int sisdSegmentLeftEnd = 1 + ((currentField->width - 2) % REGISTER_SIZE_INT8);
     int simdSegmentStart = sisdSegmentLeftEnd;
-    int simdSegmentEnd = currentField->width - 1;
-    int sisdSegmentRightStart = simdSegmentEnd;
-    // int sisdSegmentRightEnd = currentField->width;
 
 #ifdef DEBUG
     printf("=======================================\n");
@@ -98,14 +95,12 @@ static inline void simulateStepVanillaSIMD(struct Field *currentField, struct Fi
     printf("SISD Segment Left Start: %d\n", sisdSegmentLeftStart);
     printf("SISD Segment Left End: %d\n", sisdSegmentLeftEnd);
     printf("SIMD Segment Start: %d\n", simdSegmentStart);
-    printf("SIMD Segment End: %d\n", simdSegmentEnd);
-    printf("SISD Segment Right Start: %d\n", sisdSegmentRightStart);
 #endif
 
     int x, y;
 
     // SISD Segment Left
-    for (y = 0; y < currentField->height; y++)
+    for (y = 1; y < currentField->height - 1; y++)
     {
         for (x = sisdSegmentLeftStart; x < sisdSegmentLeftEnd; x++)
         {
@@ -147,9 +142,9 @@ static inline void simulateStepVanillaSIMD(struct Field *currentField, struct Fi
     #endif // AVX_512
 
     register_int resultRegister;
-    for (y = 0; y < currentField->height; y++)
+    for (y = 1; y < currentField->height - 1; y++)
     {
-        for (x = simdSegmentStart; x < simdSegmentEnd - 1; x += REGISTER_SIZE_INT8)
+        for (x = simdSegmentStart; x < currentField->width - 1; x += REGISTER_SIZE_INT8)
         {
             neighborNWAdress = &currentField->field[calcIndex(currentField->width, x - 1, y - 1)];
             neighborNW = loadUnalignedMemory(neighborNWAdress);
@@ -192,16 +187,8 @@ static inline void simulateStepVanillaSIMD(struct Field *currentField, struct Fi
         }
     }
 
-    // SISD Segment Right
-    // x will always be the same, width = 1
-    x = sisdSegmentRightStart;
-    for (y = 0; y < currentField->height; y++)
-    {
-        golKernel(currentField, newField, x, y);
-    }
-
-    VTK_OUTPUT_SEGMENT(currentField, timestep, 0, currentField->width, 0, currentField->height)
-    VTK_OUTPUT_MASTER(currentField, timestep)
+    VTK_OUTPUT_SEGMENT(currentField, 0, currentField->width, 0, currentField->height)
+    VTK_OUTPUT_MASTER(currentField, timestep, 0, 0)
 }
 
 #endif // GOL_VANILLA

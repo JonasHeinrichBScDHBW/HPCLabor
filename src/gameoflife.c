@@ -12,7 +12,7 @@ void simulateSteps(int timesteps, struct Field *currentField, struct Field *newF
 
 #ifdef DEBUG
         printf("Timestep: %ld\n", t);
-        printField(&currentField);
+        printField(currentField);
         usleep(200000);
 #endif
 

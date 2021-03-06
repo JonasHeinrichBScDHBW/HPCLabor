@@ -52,11 +52,11 @@ static void BM_SimulateStep(benchmark::State &state, simulate_func simulateFunc)
 
 #define GOL_BENCHMARK_BOARD_SIZES \
     {                             \
-        1026                      \
+        (1 << 10) + 2             \
     }
 BENCHMARK_CAPTURE(BM_SimulateStep, Vanilla_Plain, &simulateStepVanillaPlain)->Args(GOL_BENCHMARK_BOARD_SIZES);
-// BENCHMARK_CAPTURE(BM_SimulateStep, Vanilla_SIMD, &simulateStepVanillaSIMD)->Args(GOL_BENCHMARK_BOARD_SIZES);
-// BENCHMARK_CAPTURE(BM_SimulateStep, OMP_Plain, &simulateStepOMPPlain)->Args(GOL_BENCHMARK_BOARD_SIZES);
+BENCHMARK_CAPTURE(BM_SimulateStep, Vanilla_SIMD, &simulateStepVanillaSIMD)->Args(GOL_BENCHMARK_BOARD_SIZES);
+BENCHMARK_CAPTURE(BM_SimulateStep, OMP_Plain, &simulateStepOMPPlain)->Args(GOL_BENCHMARK_BOARD_SIZES);
 
 #undef BenchmarkRange
 
