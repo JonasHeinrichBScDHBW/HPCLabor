@@ -1,5 +1,12 @@
 # High Performance Computing Labor - Game of Life
 
+## General Remarks
+
+- Project compiles in both C and C++
+  - C++ version with Google Benchmark for easy single threaded comparison (algorithm optimisation)
+  - C version for actual benchmark
+- Implementation with SIMD (AVX2 / AVX512 for fun)
+
 ## Project Structure
 
 - `archive`: task material provided by the lecturer
