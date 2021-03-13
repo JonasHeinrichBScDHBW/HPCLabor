@@ -1,0 +1,6 @@
+,(Thread,Command being timed,User time (seconds),System time (seconds),Percent of CPU this job got,Elapsed (wall clock) time (h:mm:ss or m:ss),Average shared text size (kbytes),Average unshared data size (kbytes),Average stack size (kbytes),Average total size (kbytes),Maximum resident set size (kbytes),Average resident set size (kbytes),Major (requiring I/O) page faults,Minor (reclaiming a frame) page faults,Voluntary context switches,Involuntary context switches,Swaps,File system inputs,File system outputs,Socket messages sent,Socket messages received,Signals delivered,Page size (bytes),Exit status
+0,1) j:0,"""/home/jonas/Desktop/hpc-labor/build/gameoflife 500 4096 4096""",201.69,0.27,199%,1:41.48,0,0,0,0,34864,0,0,11163,595,537,0,0,0,0,0,0,4096,0
+1,1) j:0,"""/home/jonas/Desktop/hpc-labor/build/gameoflife 500 4096 4096""",199.32,0.22,199%,1:40.21,0,0,0,0,34876,0,0,10715,569,585,0,0,0,0,0,0,4096,0
+2,0) j:0,"""/home/jonas/Desktop/hpc-labor/build/gameoflife 500 4096 4096""",199.94,0.25,199%,1:40.58,0,0,0,0,34964,0,0,11144,602,638,0,0,0,0,0,0,4096,0
+3,1) j:0,"""/home/jonas/Desktop/hpc-labor/build/gameoflife 500 4096 4096""",200.70,0.25,199%,1:40.87,0,0,0,0,35008,0,0,11075,569,596,0,0,0,0,0,0,4096,0
+4,1) j:0,"""/home/jonas/Desktop/hpc-labor/build/gameoflife 500 4096 4096""",199.19,0.25,199%,1:40.15,0,0,0,0,34920,0,0,10705,558,586,0,0,0,0,0,0,4096,0

@@ -1,4 +1,4 @@
-IMPLEMENTATION_VERSION = 'MPI'
+IMPLEMENTATION_VERSION = 'OMP'
 
 ifeq ($(IMPLEMENTATION_VERSION), 'MPI')
 CC = mpicc # gcc | mpicc | icx
@@ -9,7 +9,6 @@ CC = gcc # gcc | mpicc | icx
 CPPC = g++ # g++ | mpic++ | icpx
 ADDITIONAL_DEFS = -DGOL_VERSION_OPENMP
 endif
-
 
 DEBUG_FLAGS = -DNO_DEBUG
 # DEBUG_FLAGS = -DDEBUG -DVTK_OUTPUT
@@ -36,22 +35,22 @@ build-gol: src/gameoflife.c
 # Run pure C variant
 ifeq ($(IMPLEMENTATION_VERSION), 'MPI')
 run-gol: build-gol
-	mpirun -n 1 ./build/gameoflife 100 1024 1024
+	mpirun -n 5 ./build/gameoflife 10 128 128
 else
 run-gol: build-gol
-	./build/gameoflife
+	./build/gameoflife 10 128 128
 endif
 
 # Build C++ Benchmark Wrapper
 build-benchmark-cpp: src/benchmark.cpp
-	$(CPPC) $(ARCHITECTURE_DEFINITIONS) src/benchmark.cpp $(COMPILER_FLAGS_CPP) $(COMPILER_FLAGS) -isystem google-benchmark/include -Lgoogle-benchmark/build/src -lbenchmark -lpthread -o build/benchmark
+	$(CPPC) $(ARCHITECTURE_DEFINITIONS) $(ADDITIONAL_DEFS) src/benchmark.cpp $(COMPILER_FLAGS_CPP) $(COMPILER_FLAGS) -isystem google-benchmark/include -Lgoogle-benchmark/build/src -lbenchmark -lpthread -o build/benchmark
 
 # Run C++ Benchmark Wrapper
 run-benchmark-cpp: build-benchmark-cpp
 	./build/benchmark --benchmark_report_aggregates_only=true --benchmark_repetitions=10 --benchmark_out_format=csv --benchmark_out=benchmarks/_cpp_benchmark.csv
 
 # Run Python Benchmark wrapper
-run-benchmark: all
+run-benchmark: build-gol
 	python3 src/benchmark.py
 
 # Build scratchpad

@@ -26,7 +26,9 @@ DIR_PLOTS = DIR_ROOT.joinpath("plots")
 TEST_COMMAND = str(DIR_BUILD.joinpath('gameoflife').resolve())
 TEST_FUNCTION = "simulateSteps"
 
-NUMBER_CORES = 8
+# PATH=/usr/lib64/mpi/gcc/openmpi/bin:$PATH for suse
+# export LD_LIBRARY_PATH=/usr/lib64/mpi/gcc/openmpi//lib64:$LD_LIBRARY_PATH
+NUMBER_CORES = 40
 RUNS = 5
 TIMESTEPS = 500  # determined to be >20s and <1min
 
@@ -161,8 +163,8 @@ def run_benchmark(benchmark: Benchmark, benchmark_type: str) -> str:
             "-n", str(benchmark.threads),
             TEST_COMMAND,
             str(benchmark.timesteps),
-            str(benchmark.width),
-            str(benchmark.height)
+            str(int(benchmark.width / benchmark.threads)),
+            str(int(benchmark.height))
         ]
         env = dict(os.environ)
         env["PATH"] = str(DIR_PERFORATOR.resolve()) + ":" + env["PATH"]
@@ -192,7 +194,7 @@ def run_benchmark(benchmark: Benchmark, benchmark_type: str) -> str:
 
 
 def calculate_segments(threads: int) -> List[Tuple[int]]:
-    retur [(None, None),]
+    return [(None, None),]
     # None, None is kept to let our program figure it out
     factors = [(None, None), (1, threads), ]
 
@@ -353,7 +355,19 @@ def wrong_log(number, basis):
         return math.log(number, basis)
 
 
-def plot_3d_thread_size_time(benchmarks: List[Benchmark], z_metric="Elapsed (wall clock) time (h:mm:ss or m:ss)", z_label="Elapsed Wall Clock Time", show=False):
+def parse_metrics(benchmark, z_metric):
+    metrics = []
+    for metric in benchmark.data[z_metric]:
+        if ":" in metric:
+            parsed_time = parse_time(metric)
+            if parsed_time is not None:
+                metrics.append(parsed_time.total_seconds())
+        else:
+            metrics.append(metric)
+    return metrics
+
+
+def plot_3d_thread_size_time(benchmarks: List[Benchmark], benchmark_type="omp", calculation="mean", show=False):
     """
     3D Plot: Threads vs Size vs Time
     ================================
@@ -366,6 +380,17 @@ def plot_3d_thread_size_time(benchmarks: List[Benchmark], z_metric="Elapsed (wal
     y = []
     z = []
 
+    z_metric="Elapsed (wall clock) time (h:mm:ss or m:ss)"
+
+    if calculation == "mean":
+        z_label = "$\log_4($Mean Wall Time (s)$)$"
+    elif calculation == "speedup":
+        z_label = "Speedup"
+    elif calculation == "efficiency":
+        z_label = "Efficiency"
+    else:
+        raise ValueError("Calculation not supported")
+
     for benchmark in benchmarks:
         if benchmark.segments_x != calculate_segments(benchmark.threads)[-1][0]:
             continue
@@ -373,15 +398,29 @@ def plot_3d_thread_size_time(benchmarks: List[Benchmark], z_metric="Elapsed (wal
         x.append(wrong_log(benchmark.width * benchmark.height, 4))
         y.append(wrong_log(benchmark.threads, 2))
 
-        metrics = []
-        for metric in benchmark.data[z_metric]:
-            if ":" in metric:
-                parsed_time = parse_time(metric)
-                if parsed_time is not None:
-                    metrics.append(parsed_time.total_seconds())
-            else:
-                metrics.append(metric)
-        z.append(wrong_log(pd.Series(metrics).mean(), 4))
+        benchmark_metrics = parse_metrics(benchmark, z_metric)
+        benchmark_mean = pd.Series(benchmark_metrics).mean()
+        if calculation == "mean":
+            z.append(wrong_log(benchmark_mean, 4))
+        else:
+            # NOTE: Very inefficient - quick and dirty
+            reference_benchmark = None
+            for b in benchmarks:
+                if b.threads == 1 and b.width == benchmark.width and b.height == benchmark.height and b.segments_x == benchmark.segments_x and b.segments_y == benchmark.segments_y:
+                    reference_benchmark = b
+                    break
+            if reference_benchmark is None:
+                raise ValueError("Reference benchmark not found")
+
+            reference_metrics = parse_metrics(reference_benchmark, z_metric)
+            reference_mean = pd.Series(reference_metrics).mean()
+
+            speedup = reference_mean / benchmark_mean
+
+            if calculation == "speedup":
+                z.append(speedup)
+            elif calculation == "efficiency":
+                z.append(speedup / benchmark.threads)
 
     X = np.array(x)
     Y = np.array(y)
@@ -393,12 +432,12 @@ def plot_3d_thread_size_time(benchmarks: List[Benchmark], z_metric="Elapsed (wal
 
     ax.set_xlabel("$\log_4($Board Area$)$")
     ax.set_ylabel("$\log_2($Number of Threads$)$")
-    ax.set_zlabel(f"$\log_4(${z_label} (s)$)$")
+    ax.set_zlabel(z_label)
     plt.title(
         f"Game of Life Benchmark: Number of Threads vs Board Area vs {z_label} ({benchmark.data[z_metric].count()} runs)", fontsize=14)
     ax.view_init(15, 135)
 
-    plt.savefig(str(DIR_PLOTS.joinpath(f"thread_size_{z_label.lower().replace(' ', '_')}_3d.png")))
+    plt.savefig(str(DIR_PLOTS.joinpath(f"{benchmark_type}_{calculation}_3d.png")))
     if show:
         plt.show()
 
@@ -452,29 +491,32 @@ def plot_2d_segments_time(benchmarks: List[Benchmark], board_size=1024, y_metric
     plt.title(
         f"Game of Life Benchmark: Segments vs {y_label} ({benchmark.data[y_metric].count()} runs | Board Size {board_size})", fontsize=14)
 
-    plt.savefig(str(DIR_PLOTS.joinpath(f"segments_{y_label.lower().replace(' ', '_')}_{board_size}_2d.png")))
+    plt.savefig(str(DIR_PLOTS.joinpath(f"segments_mpi_{y_label.lower().replace(' ', '_')}_{board_size}_2d.png")))
     if show:
         plt.show()
 
 
-def visualize_benchmarks(benchmarks: List[Benchmark], show=True):
-    plot_3d_thread_size_time(benchmarks, show=show)
+def visualize_benchmarks(benchmarks: List[Benchmark], benchmark_type, show=True):
+    plot_3d_thread_size_time(benchmarks, benchmark_type=benchmark_type, calculation="mean", show=show)
+    plot_3d_thread_size_time(benchmarks, benchmark_type=benchmark_type, calculation="speedup", show=show)
+    plot_3d_thread_size_time(benchmarks, benchmark_type=benchmark_type, calculation="efficiency", show=show)
     plot_2d_segments_time(benchmarks, board_size=1024, show=show)
     plot_2d_segments_time(benchmarks, board_size=2048, show=show)
     plot_2d_segments_time(benchmarks, board_size=4096, show=show)
 
 
 def main():
-    benchmark_type = "mpi"
+    benchmark_type = "mpi" # omp | mpi
+    show = True # True | False
 
-    # run_cpp_benchmark()
+    run_cpp_benchmark()
 
-    # build()
+    build()
     run_benchmarks(benchmark_type)
 
-    # benchmarks = load_benchmarks()
-    # visualize_benchmarks(benchmarks)
-    # plot_cpp_benchmark(True)
+    benchmarks = load_benchmarks()
+    visualize_benchmarks(benchmarks, benchmark_type, show)
+    plot_cpp_benchmark(True)
 
 
 if __name__ == "__main__":

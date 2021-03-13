@@ -71,4 +71,5 @@ Selektion des XML-Tags exclusive `append-data` gemessen (analog aus C-Code zu be
 
 ### Aufgabe 2
 
-*
+*Notieren Sie Ihre Beobachtungen in kurzer Form.*
+

@@ -3,7 +3,7 @@
 #include "gol_mpi.h"
 #define simulateStepFunction simulateStepMPI1DPlain
 #else
-#define simulateStepFunction simulateStepVanillaPlain
+#define simulateStepFunction simulateStepOMPPlain
 #endif // GOL_VERSION_MPI
 
 #include "gol_field.h"
