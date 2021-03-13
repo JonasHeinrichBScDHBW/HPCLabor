@@ -24,19 +24,19 @@
     snprintf(segmentPrefix, sizeof(segmentPrefix), "gol_mtp_%05d", TIMESTEP); \
     snprintf(pathPrefix, sizeof(pathPrefix), "output/"); 
 
-#define VTK_OUTPUT_SEGMENT(CURRENT_FIELD, START_X, END_X, START_Y, END_Y) \
-    writeVTK2(CURRENT_FIELD, pathPrefix, segmentPrefix, START_X, END_X, START_Y, END_Y); \
+#define VTK_OUTPUT_SEGMENT(CURRENT_FIELD, OFFSET_X, START_X, END_X, OFFSET_Y, START_Y, END_Y) \
+    writeVTK2(CURRENT_FIELD, pathPrefix, segmentPrefix, OFFSET_X, START_X, END_X, OFFSET_Y, START_Y, END_Y); \
 
-#define VTK_OUTPUT_MASTER(CURRENT_FIELD, TIMESTEP, SEGMENTS_X, SEGMENTS_Y) \
+#define VTK_OUTPUT_MASTER(CURRENT_FIELD, TIMESTEP, TOTAL_WIDTH, SEGMENTS_X, TOTAL_HEIGHT, SEGMENTS_Y) \
     char masterPrefix[1024]; \
     snprintf(masterPrefix, sizeof(masterPrefix), "gol_mtp_%05d", TIMESTEP); \
-    writeVTK2Master(CURRENT_FIELD, pathPrefix, masterPrefix, SEGMENTS_X, SEGMENTS_Y);
+    writeVTK2Master(CURRENT_FIELD, pathPrefix, masterPrefix, TOTAL_WIDTH, SEGMENTS_X, TOTAL_HEIGHT, SEGMENTS_Y);
 
 #else
 
 #define VTK_INIT(TIMESTEP)
-#define VTK_OUTPUT_SEGMENT(CURRENT_FIELD, START_X, END_X, START_Y, END_Y)
-#define VTK_OUTPUT_MASTER(CURRENT_FIELD, TIMESTEP, SEGMENTS_X, SEGMENTS_Y)
+#define VTK_OUTPUT_SEGMENT(CURRENT_FIELD, OFFSET_X, START_X, END_X, OFFSET_Y, START_Y, END_Y)
+#define VTK_OUTPUT_MASTER(CURRENT_FIELD, TIMESTEP, TOTAL_WIDTH, SEGMENTS_X, TOTAL_HEIGHT, SEGMENTS_Y)
 
 #endif // VTK_OUTPUT
 
@@ -119,7 +119,7 @@ static inline void initializeField(struct Field *field, int width, int height, i
         printf("Factor Y: %lf\n", field->factorY);
 #endif
 
-    field->field = (FieldType *)calloc(width * height, sizeof(FieldType));
+    field->field = (FieldType *)calloc(field->width * field->height, sizeof(FieldType));
 }
 
 static inline void initializeFieldOther(struct Field *field, struct Field *other)
@@ -175,7 +175,7 @@ static inline void fillRandom(struct Field *currentField)
 // (VTK) Helper
 //
 
-void writeVTK2(struct Field *data, char pathPrefix[1024], char prefix[1024], int startX, int endX, int startY, int endY)
+void writeVTK2(struct Field *data, char pathPrefix[1024], char prefix[1024], int offsetX, int startX, int endX, int offsetY, int startY, int endY)
 {
     char filename[2048];
     int x, y;
@@ -183,7 +183,7 @@ void writeVTK2(struct Field *data, char pathPrefix[1024], char prefix[1024], int
     float deltax = 1.0;
     long nxy = data->width * data->height * sizeof(float);
 
-    int ret = snprintf(filename, sizeof(filename), "%s%s_%d_%d.vti", pathPrefix, prefix, startX, startY);
+    int ret = snprintf(filename, sizeof(filename), "%s%s_%d_%d.vti", pathPrefix, prefix, offsetX + startX, offsetY + startY);
     if (ret < 0) {
          abort();
     }
@@ -192,7 +192,7 @@ void writeVTK2(struct Field *data, char pathPrefix[1024], char prefix[1024], int
     fprintf(fp, "<?xml version=\"1.0\"?>\n");
     fprintf(fp, "<VTKFile type=\"ImageData\" version=\"0.1\" byte_order=\"LittleEndian\" header_type=\"UInt64\">\n");
     fprintf(fp, "<ImageData WholeExtent=\"%d %d %d %d %d %d\" Origin=\"%d %d %d\" Spacing=\"%le %le %le\">\n",
-            startX, startX + (endX - startX), startY, startY + (endY - startY), 0, 0,
+            offsetX + startX, offsetX + startX + (endX - startX), offsetY + startY, offsetY + startY + (endY - startY), 0, 0,
             startX, startY, 0,
             deltax, deltax, 0.0);
     fprintf(fp, "<CellData Scalars=\"%s\">\n", prefix);
@@ -217,8 +217,14 @@ void writeVTK2(struct Field *data, char pathPrefix[1024], char prefix[1024], int
     fclose(fp);
 }
 
-void writeVTK2Master(struct Field *data, char pathPrefix[1024], char prefix[1024], int segmentsX, int segmentsY)
+void writeVTK2Master(struct Field *data, char pathPrefix[1024], char prefix[1024], int totalWidth, int segmentsX, int totalHeight, int segmentsY)
 {
+    if(totalWidth == 0 && totalHeight == 0)
+    {
+        totalWidth = data->width;
+        totalHeight = data->height;
+    }
+
     char filename[2048];
 
     float deltax = 1.0;
@@ -229,7 +235,7 @@ void writeVTK2Master(struct Field *data, char pathPrefix[1024], char prefix[1024
     fprintf(fp, "<VTKFile type=\"PImageData\" version=\"0.1\" byte_order=\"LittleEndian\" header_type=\"UInt64\">\n");
 
     fprintf(fp, "<PImageData WholeExtent=\"%d %d %d %d %d %d\" GhostLevel=\"#\" Origin=\"%d %d %d\" Spacing=\"%le %le %le\">\n",
-            0, data->width, 0, data->height, 0, 0,
+            0, totalWidth, 0, totalHeight, 0, 0,
             0, 0, 0,
             deltax, deltax, 0.0);
     fprintf(fp, "<PCellData Scalars=\"%s%s\">\n", pathPrefix, prefix);
@@ -272,9 +278,42 @@ void writeVTK2Master(struct Field *data, char pathPrefix[1024], char prefix[1024
     }
     else
     {
-        fprintf(fp, "<Piece Extent=\"%d %d %d %d 0 0\" Source=\"%s_%d_%d.vti\"/>\n",
-                0, data->width, 0, data->height,
-                prefix, 0, 0);
+        int endX;
+        int endY;
+        for (int x = 0; x < totalWidth;)
+        {
+            for (int y = 0; y < totalHeight;)
+            {
+                endX = x + (data->width - 2);
+                endY = y + (data->height - 2);
+
+                if(x == 0)
+                    endX++;
+                if(y == 0)
+                    endY++;
+
+                if(endX == totalWidth - 1)
+                    endX++;
+                if(endY == totalHeight - 1)
+                    endY++;
+
+                fprintf(fp, "<Piece Extent=\"%d %d %d %d 0 0\" Source=\"%s_%d_%d.vti\"/>\n",
+                        x, endX, y, endY,
+                        prefix, x, y);
+                
+                if(x == 0)
+                {
+                    x++;
+                }
+                if(y == 0)
+                {
+                    y++;
+                }
+
+                x = endX;
+                y = endY;
+            }
+        }
     }
 
     fprintf(fp, "</PImageData>\n");

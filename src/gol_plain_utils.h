@@ -21,12 +21,16 @@ static inline int countNeighbors(struct Field *currentField, int x, int y)
     return sum;
 }
 
-static inline void golKernel(struct Field *currentField, struct Field *newField, int x, int y)
+static inline bool golKernel(struct Field *currentField, struct Field *newField, int x, int y)
 {
     int n = countNeighbors(currentField, x, y);
 
+    FieldType value = (n == 3 || (n == 2 && currentField->field[calcIndex(currentField->width, x, y)]));
+
     // Either 3 neighbors or 2 neighbors and alive
-    newField->field[calcIndex(currentField->width, x, y)] = (n == 3 || (n == 2 && currentField->field[calcIndex(currentField->width, x, y)]));
+    newField->field[calcIndex(currentField->width, x, y)] = value;
+
+    return value != currentField->field[calcIndex(currentField->width, x, y)];
 }
 
 #endif // GOL_PLAIN_UTILS

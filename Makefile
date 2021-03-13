@@ -1,16 +1,25 @@
-# the compiler: gcc for C program, define as g++ for C++
-CC = gcc # gcc | icx
-CPPC = g++ # g++ | icpx
+IMPLEMENTATION_VERSION = 'MPI'
+
+ifeq ($(IMPLEMENTATION_VERSION), 'MPI')
+CC = mpicc # gcc | mpicc | icx
+CPPC = mpic++ # g++ | mpic++ | icpx
+ADDITIONAL_DEFS = -DGOL_VERSION_MPI
+else
+CC = gcc # gcc | mpicc | icx
+CPPC = g++ # g++ | mpic++ | icpx
+ADDITIONAL_DEFS = -DGOL_VERSION_OPENMP
+endif
+
 
 DEBUG_FLAGS = -DNO_DEBUG
-# DEBUG_FLAGS = -DVTK_OUTPUT -DDEBUG
+# DEBUG_FLAGS = -DDEBUG -DVTK_OUTPUT
 
 # compiler flags:
 #  -g                     adds debugging information to the executable file
 #  -Wall                  turns on most, but not all, compiler warnings
 #  -Wno-format-truncation
 ARCHITECTURE_DEFINITIONS = -DAVX_2 # -DAVX_2 | -DAVX_512
-COMPILER_FLAGS           = -g -O3 -Wall -lc -lm -fopenmp -D _DEFAULT_SOURCE -march=native $(DEBUG_FLAGS) # -march=native | -march=skylake-avx512
+COMPILER_FLAGS           = -g -O0 -Wall -lc -lm -fopenmp -D _DEFAULT_SOURCE -march=native $(DEBUG_FLAGS) # -march=native | -march=skylake-avx512
 COMPILER_FLAGS_C         = -std=c99
 COMPILER_FLAGS_CPP       = -std=c++17
 
@@ -22,11 +31,16 @@ source-intel-env:
 
 # Build pure C variante
 build-gol: src/gameoflife.c
-	$(CC) $(ARCHITECTURE_DEFINITIONS) src/gameoflife.c  $(COMPILER_FLAGS_C) $(COMPILER_FLAGS) -o build/gameoflife
+	$(CC) $(ARCHITECTURE_DEFINITIONS) $(ADDITIONAL_DEFS) src/gameoflife.c  $(COMPILER_FLAGS_C) $(COMPILER_FLAGS) -o build/gameoflife
 
 # Run pure C variant
+ifeq ($(IMPLEMENTATION_VERSION), 'MPI')
+run-gol: build-gol
+	mpirun -n 1 ./build/gameoflife 100 1024 1024
+else
 run-gol: build-gol
 	./build/gameoflife
+endif
 
 # Build C++ Benchmark Wrapper
 build-benchmark-cpp: src/benchmark.cpp
@@ -43,7 +57,7 @@ run-benchmark: all
 # Build scratchpad
 scratchpad: src/scratchpad.c
 	$(CC) -o build/scratchpad src/scratchpad.c $(COMPILER_FLAGS) $(COMPILER_FLAGS_C)
-	./build/scratchpad
+	mpirun -n 4 ./build/scratchpad
 
 # Remove builds / Cleanup
 clean:

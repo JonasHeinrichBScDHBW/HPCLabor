@@ -21,8 +21,8 @@ static inline void simulateStepVanillaPlain(struct Field *currentField, struct F
         }
     }
 
-    VTK_OUTPUT_SEGMENT(currentField, 0, currentField->width, 0, currentField->height)
-    VTK_OUTPUT_MASTER(currentField, timestep, 0, 0)
+    VTK_OUTPUT_SEGMENT(currentField, 0, 0, currentField->width, 0, 0, currentField->height)
+    VTK_OUTPUT_MASTER(currentField, timestep, currentField->width, 0, currentField->height, 0)
 }
 
 
@@ -187,8 +187,8 @@ static inline void simulateStepVanillaSIMD(struct Field *currentField, struct Fi
         }
     }
 
-    VTK_OUTPUT_SEGMENT(currentField, 0, currentField->width, 0, currentField->height)
-    VTK_OUTPUT_MASTER(currentField, timestep, 0, 0)
+    VTK_OUTPUT_SEGMENT(currentField, 0, 0, currentField->width, 0, 0, currentField->height)
+    VTK_OUTPUT_MASTER(currentField, timestep, currentField->width, 0, currentField->height, 0)
 }
 
 #endif // GOL_VANILLA

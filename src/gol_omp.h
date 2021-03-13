@@ -28,20 +28,20 @@ static inline void simulateStepOMPPlain(struct Field *currentField, struct Field
                 }
             }
 
-            VTK_OUTPUT_SEGMENT(currentField, startX, endX, startY, endY)
+            VTK_OUTPUT_SEGMENT(currentField, 0, startX, endX, 0, startY, endY)
         }
     }
 
     // Write global ghost layer
     // upper and lower (including corners)
-    VTK_OUTPUT_SEGMENT(currentField, 0, currentField->width, 0, 1)
-    VTK_OUTPUT_SEGMENT(currentField, 0, currentField->width, currentField->height - 1, currentField->height)
+    VTK_OUTPUT_SEGMENT(currentField, 0, 0, currentField->width, 0, 0, 1)
+    VTK_OUTPUT_SEGMENT(currentField, 0, 0, currentField->width, 0, currentField->height - 1, currentField->height)
 
     // left and right (excluding corners)
-    VTK_OUTPUT_SEGMENT(currentField, 0, 1,                                         1, currentField->height - 1)
-    VTK_OUTPUT_SEGMENT(currentField, currentField->width - 1, currentField->width, 1, currentField->height - 1)
+    VTK_OUTPUT_SEGMENT(currentField, 0, 0, 1,                                         0, 1, currentField->height - 1)
+    VTK_OUTPUT_SEGMENT(currentField, 0, currentField->width - 1, currentField->width, 0, 1, currentField->height - 1)
 
-    VTK_OUTPUT_MASTER(currentField, timestep, currentField->segmentsX, currentField->segmentsY)
+    VTK_OUTPUT_MASTER(currentField, timestep, currentField->width, currentField->segmentsX, currentField->height, currentField->segmentsY)
 }
 
 #endif // GOL_OMP

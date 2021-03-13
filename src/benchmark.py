@@ -133,25 +133,39 @@ def run_benchmark_perforator(benchmark: Benchmark) -> str:
         benchmark.data = df
 
 
-def run_benchmark(benchmark: Benchmark) -> str:
+def run_benchmark(benchmark: Benchmark, benchmark_type: str) -> str:
     # NOTE: eg: /usr/bin/time -v ./gameoflife 1500 1000 1000
 
-    command = [
-        "/usr/bin/time",
-        "-v",
-        TEST_COMMAND,
-        str(benchmark.timesteps),
-        str(benchmark.width),
-        str(benchmark.height)
-    ]
-    if benchmark.segments_x is not None and benchmark.segments_y is not None:
-        command.append(str(benchmark.segments_x))
-        command.append(str(benchmark.segments_y))
+    if benchmark_type == "omp":
+        command = [
+            "/usr/bin/time",
+            "-v",
+            TEST_COMMAND,
+            str(benchmark.timesteps),
+            str(benchmark.width),
+            str(benchmark.height)
+        ]
+        if benchmark.segments_x is not None and benchmark.segments_y is not None:
+            command.append(str(benchmark.segments_x))
+            command.append(str(benchmark.segments_y))
 
-    env = dict(os.environ)
-    env.update({"OMP_NUM_THREADS": str(benchmark.threads)})
-    env.update({"OMP_DYNAMIC ": "false"})
-    env["PATH"] = str(DIR_PERFORATOR.resolve()) + ":" + env["PATH"]
+        env = dict(os.environ)
+        env.update({"OMP_NUM_THREADS": str(benchmark.threads)})
+        env.update({"OMP_DYNAMIC ": "false"})
+        env["PATH"] = str(DIR_PERFORATOR.resolve()) + ":" + env["PATH"]
+    elif benchmark_type == "mpi":
+        command = [
+            "/usr/bin/time",
+            "-v",
+            "mpirun",
+            "-n", str(benchmark.threads),
+            TEST_COMMAND,
+            str(benchmark.timesteps),
+            str(benchmark.width),
+            str(benchmark.height)
+        ]
+        env = dict(os.environ)
+        env["PATH"] = str(DIR_PERFORATOR.resolve()) + ":" + env["PATH"]
 
     retry = True
     while retry:
@@ -178,6 +192,7 @@ def run_benchmark(benchmark: Benchmark) -> str:
 
 
 def calculate_segments(threads: int) -> List[Tuple[int]]:
+    retur [(None, None),]
     # None, None is kept to let our program figure it out
     factors = [(None, None), (1, threads), ]
 
@@ -194,7 +209,7 @@ def calculate_segments(threads: int) -> List[Tuple[int]]:
     return factors
 
 
-def run_benchmarks():
+def run_benchmarks(benchmark_type: str):
     for size in [1024, 2048, 4096]:
         for threads in range(1, NUMBER_CORES + 1):
             # On larger core machines
@@ -212,7 +227,7 @@ def run_benchmarks():
                     segments_y=segments[1])
                 for _ in range(RUNS):
                     print("Running benchmark: " + str(benchmark))
-                    run_benchmark(benchmark)
+                    run_benchmark(benchmark, benchmark_type)
                 print("Saving benchmark: " + str(benchmark))
                 benchmark.save(DIR_BENCHMARKS)
 
@@ -450,14 +465,16 @@ def visualize_benchmarks(benchmarks: List[Benchmark], show=True):
 
 
 def main():
+    benchmark_type = "mpi"
+
     # run_cpp_benchmark()
 
     # build()
-    # run_benchmarks()
+    run_benchmarks(benchmark_type)
 
-    benchmarks = load_benchmarks()
-    visualize_benchmarks(benchmarks)
-    plot_cpp_benchmark(True)
+    # benchmarks = load_benchmarks()
+    # visualize_benchmarks(benchmarks)
+    # plot_cpp_benchmark(True)
 
 
 if __name__ == "__main__":

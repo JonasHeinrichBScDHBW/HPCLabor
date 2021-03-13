@@ -27,7 +27,7 @@
   - `gol_vanilla.h`: GOL implementation that uses no framework (single threaded)
   - `scratchpad.c`: Scratchpad file for testing random things
 
-## Aufgaben (German)
+## Uebung 1
 
 ### Aufgabe 3 - Performanceanalyse
 
@@ -56,3 +56,19 @@ Selektion des XML-Tags exclusive `append-data` gemessen (analog aus C-Code zu be
 - Beispiel: 898 / 130 = 6.9
 - Relativ (ohne bias): 520 / 130 = 4
     - Umwandeln von char zu float
+
+## Uebung 3
+
+### Aufgabe 1g
+
+*Welche Probleme ergeben sich im Zusammenhang miteiner 2D Gebietszerlegung und welche Vorraussetzungen müssen an den Aufrufer des Programms gestellt werden?*
+
+- erst ab 4 Prozessen (wirklich) sinnvoll
+- gerade Anzahl von Prozessen oder 1
+- Kommunikationsaufwand steigt mit 2 bzw. 6 Kommunikationspartnern
+- Fuer periodisch: Torus Netzwerk vorteilhaft
+- Je nach Eingabeformat und Segmentaufteilung muss die gesamte Feldgroesse durch die Anzahl der Prozesse teilbar sein
+
+### Aufgabe 2
+
+*
